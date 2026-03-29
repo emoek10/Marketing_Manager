@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
-const prisma = new PrismaClient();
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   // Smart redirect: if tenant exists → dashboard, otherwise → onboarding
