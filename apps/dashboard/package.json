@@ -1,0 +1,39 @@
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate --schema=../../packages/database/prisma/schema.prisma && next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate --schema=../../packages/database/prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@google/genai": "^1",
+    "@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0",
+    "@tanstack/react-query": "^5",
+    "class-variance-authority": "^0.7",
+    "clsx": "^2",
+    "inngest": "^3",
+    "lucide-react": "^0.468",
+    "next": "16.1.7",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "recharts": "^2",
+    "tailwind-merge": "^2",
+    "tw-animate-css": "^1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.7",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("USER") // ADMIN, USER, MANAGER
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tenant {
+  id                    String        @id @default(uuid())
+  name                  String
+  subscriptionTier      String        @default("FREE") // FREE, PRO, AGENCY
+  isGeneratingStrategy  Boolean       @default(false)
+  users                 User[]
+  brandProfile          BrandProfile?
+  contentJobs           ContentJob[]
+  campaigns             Campaign[]
+  blogPosts             BlogPost[]
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+}
+
+model BrandProfile {
+  id             String   @id @default(uuid())
+  tenantId       String   @unique
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  companyStory   String?
+  websiteUrl     String?
+  industry       String?
+  competitorUrls String? // JSON stringified array of URLs
+  brandValues    String?
+  toneAnchor     String? // Brand Voice never changes, only tone adapts
+  designSpec     String? // Grid System, legacy JSON
+  brandColors    String? // JSON: ["#f4841e", "#1a1a2e", "#ffffff"]
+  brandFonts     String? // JSON: ["Inter", "Outfit"]
+  logoUrl        String? // URL to brand logo
+  newsFilters    String? // Specific news to monitor
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ContentJob {
+  id              String        @id @default(uuid())
+  tenantId        String
+  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaignId      String?
+  campaign        Campaign?     @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  topicId         String        @unique
+  strategy        String
+  status          String // PENDING, NEEDS_REVIEW, APPROVED, PROCESSING, COMPLETED, FAILED
+  contentType     String        @default("REELS") // REELS, STATIC, CAROUSEL, TEXT_ONLY
+  funnelStage     String        @default("ToF") // ToF, MoF, BoF
+  contextPlatform String        @default("TikTok") // LinkedIn, TikTok, IG, X
+  isEvergreen     Boolean       @default(true)
+  criticTurns     Int           @default(0)    // Number of Critic review attempts
+  criticFlags     String?                       // JSON: warnings from failed critic loops
+  scheduledFor    DateTime?
+  bundle          SocialBundle?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model SocialBundle {
+  id             String     @id @default(uuid())
+  contentJobId   String     @unique
+  contentJob     ContentJob @relation(fields: [contentJobId], references: [id])
+  reelsScript    String
+  storySequence  String? // JSON stringified array of objects
+  caption_ig     String
+  thread_x       String
+  post_li        String
+  videoUrl       String?
+  syntheticScore Float? // [CRITICAL] Synthetic Engagement Score for Day Trading Analysis
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Asset {
+  id           String   @id @default(uuid())
+  filename     String   @unique // The file resting in public/assets or S3
+  type         String // IMAGE, VIDEO
+  semanticTags String // Stores comma separated Vision AI keywords (e.g. "cow, milk, farm, turkey")
+  createdAt    DateTime @default(now())
+}
+
+model Campaign {
+  id             String       @id @default(uuid())
+  tenantId       String
+  tenant         Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name           String
+  objective      String
+  targetAudience String?
+  platforms      String       @default("[]") // JSON: ["IG", "LinkedIn"]
+  startDate      DateTime
+  endDate        DateTime
+  budget         Float?
+  status         String       @default("DRAFT") // DRAFT, GENERATING, ACTIVE, COMPLETED
+  contentJobs    ContentJob[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model BlogPost {
+  id             String   @id @default(uuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title          String
+  slug           String   @unique
+  content        String   // Markdown content
+  excerpt        String?  // Meta description
+  targetKeyword  String
+  secondaryKeys  String?  // JSON: ["keyword1", "keyword2"]
+  seoScore       Float?   // 0-100
+  seoAnalysis    String?  // JSON: detailed SEO analysis
+  status         String   @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
+  wordCount      Int      @default(0)
+  readingTime    Int      @default(0) // minutes
+  featuredImage  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
